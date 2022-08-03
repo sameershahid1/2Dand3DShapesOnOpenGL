@@ -87,7 +87,7 @@ int main()
   {
      -0.5f,-0.5f*float(sqrt(3))/3,0.0f,
       0.5f,-0.5f*float(sqrt(3))/3,0.0f,
-      0.0f,-0.5f*float(sqrt(3))*2/3,0.0f,
+      0.0f,0.5f*float(sqrt(3))*2/3,0.0f,
   };
 
   GLuint vertexShader=glCreateShader(GL_VERTEX_SHADER);//Getting the Vertex Shader from the memmory
@@ -105,7 +105,27 @@ int main()
   glAttachShader(shaderProgram,fragmentShader);//Attaching the Fragment Shader with the Shader Program
   glLinkProgram(shaderProgram);
 
-   
+  glDeleteShader(vertexShader);//Deleing the Vertex Shader
+  glDeleteShader(fragmentShader);//Deleing the Fragment Shader
+
+  /*
+      The Vertex Buffer Object are used for sending big chunck of data at the
+      same time to our Graphic card, because it takes so much to send it,
+      that's why it is recommended to send it at the same time.
+      The Vertex Buffer are not the same as Front and Back Buffer.
+      These Buffers are used to send data to our Graphic card to render the vertics.
+  */    
+ 
+  GLuint VBO,VAO;//Vertex Buffer Object and Vertex Array Object
+  glGenVertexArrays(1,&VAO);//Vertex Array Object must be Generated First
+  glGenBuffers(1,&VBO);//Generating Vertex Buffer
+  glBindVertexArray(VAO);//Binding the Vertex Array Object
+  glBindBuffer(GL_ARRAY_BUFFER,VBO);//It points to current Object.
+  glBufferData(GL_ARRAY_BUFFER,sizeof(vertices),vertices,GL_STATIC_DRAW);//Passing the Data to the buffer
+  
+  glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,3*sizeof(float),(void*)0);
+  glEnableVertexAttribArray(0);
+  
 
 
   glClearColor(0.07f,0.13f,0.17f,1.0f);
@@ -114,8 +134,11 @@ int main()
     //Clearing the buffers
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT);
 
-
     /* Render here */
+    glUseProgram(shaderProgram);
+    glBindVertexArray(VAO);
+    glDrawArrays(GL_TRIANGLES,0,3);
+
 
     //KeyBoard Actions
     glfwSetKeyCallback(window,key_callback);
@@ -126,7 +149,11 @@ int main()
     /* Poll for and process events */
     glfwPollEvents();
   }
-   
+  
+  glDeleteVertexArrays(1,&VAO);
+  glDeleteBuffers(1,&VBO);
+  glDeleteProgram(shaderProgram);
+
   glfwDestroyWindow(window);
   // close GL context and any other GLFW resources
   glfwTerminate();
